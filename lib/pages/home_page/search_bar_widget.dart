@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_quote_master/models/quote.dart';
+import 'package:flutter_quote_master/quotes/models/quote.dart';
 import 'package:hive/hive.dart';
 
 class SearchBarWidget extends StatefulWidget {
-  final Function(bool) onSearchStateChanged;
+  final Function(bool, List<Quote>) onSearchStateChanged;
   const SearchBarWidget({super.key, required this.onSearchStateChanged});
   @override
   State<SearchBarWidget> createState() => _SearchBarWidgetState();
@@ -33,8 +33,25 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
             controller: _searchController,
             textAlignVertical: TextAlignVertical.center,
             decoration: InputDecoration(
+              contentPadding: const EdgeInsets.all(8),
               prefixIcon: const Icon(Icons.search),
-              hintText: "Search",
+              hintText: "Search for Quotes!",
+              suffixIcon: _searchController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() {
+                        isSearching = false;
+                          widget.onSearchStateChanged(
+                              isSearching, filteredQuotes);
+                        });
+                      },
+                    )
+                  : const Icon(
+                      Icons.hourglass_bottom,
+                      color: Colors.transparent,
+                    ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
                 borderSide: const BorderSide(
@@ -48,18 +65,17 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                 isSearching =
                     (_searchController.text.length > 1) ? true : false;
               });
-              widget.onSearchStateChanged(isSearching);
+              widget.onSearchStateChanged(isSearching, filteredQuotes);
             },
           ),
         ),
-        displaySearchResults()
       ],
     );
   }
 
   void searchData(String input) {
     String query = input.toLowerCase();
-    if (query.length > 1 && filteredQuotes.length > 1) {
+    if (query.length > 1) {
       setState(
         () {
           filteredQuotes = box.values
@@ -70,38 +86,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
               .toList();
         },
       );
+      widget.onSearchStateChanged(isSearching, filteredQuotes);
     }
-  }
-
-  displaySearchResults() {
-    if (isSearching) {
-      print("SEARCHING");
-      return SizedBox(
-        height: calculateListViewHeight(filteredQuotes),
-        child: Stack(
-          children: [
-            ListView.builder(
-              itemCount: filteredQuotes.length,
-              itemBuilder: (context, index) => Container(
-                padding: EdgeInsets.fromLTRB(4, 8, 4, 8),
-                decoration:
-                    BoxDecoration(border: Border.all(color: Colors.black)),
-                child: Text(filteredQuotes[index].content),
-              ),
-            ),
-          ],
-        ),
-      );
-    } else {
-      print("NOT SEARCHING");
-      return SizedBox.shrink();
-    }
-  }
-
-  double calculateListViewHeight(List<Quote> quotes) {
-    if (quotes.length < 4)
-      return quotes.length * 50;
-    else
-      return 300;
   }
 }

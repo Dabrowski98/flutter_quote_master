@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-import '../../widgets/tile.dart';
+import '../../core/widgets/tile.dart';
 
 class RateWidget extends StatelessWidget {
   const RateWidget({

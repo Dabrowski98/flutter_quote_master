@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_quote_master/quotes/models/quote.dart';
 import 'package:flutter_quote_master/pages/home_page/categories_widget.dart';
 import 'package:flutter_quote_master/pages/home_page/main_quote_widget.dart';
 import 'package:flutter_quote_master/pages/home_page/rate_widget.dart';
@@ -15,11 +16,17 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool isSearching = false;
+  List<Quote> searchResults = [];
 
-  void updateSearchState(bool value) {
-    setState(() {
-      isSearching = value;
-    });
+  void updateSearchState(bool value, List<Quote> results) {
+    setState(
+      () {
+        isSearching = value;
+        if (value) {
+          searchResults = results;
+        }
+      },
+    );
   }
 
   @override
@@ -31,7 +38,10 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         children: [
           SearchBarWidget(onSearchStateChanged: updateSearchState),
-          MainQuoteWidget(isSearching: isSearching),
+          MainQuoteWidget(
+            isSearching: isSearching,
+            searchResults: searchResults,
+          ),
           Row(
             children: [
               RateWidget(size: size),

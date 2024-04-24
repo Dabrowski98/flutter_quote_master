@@ -6,13 +6,20 @@ class Quote {
   final String authorSlug;
   final List<dynamic> tags;
   final int length;
+  final String id;
+  bool isFavorite;
+  int key;
 
-  const Quote(
+  Quote(
       {required this.content,
       required this.author,
       required this.authorSlug,
       required this.tags,
-      required this.length});
+      required this.length,
+      required this.id,
+      this.isFavorite = false,
+       this.key = -1});
+
 }
 
 class QuoteAdapter extends TypeAdapter<Quote> {
@@ -23,6 +30,9 @@ class QuoteAdapter extends TypeAdapter<Quote> {
     final authorSlug = reader.readString();
     final tags = reader.readList();
     final length = reader.readInt();
+    final id = reader.readString();
+    final isFavorite = reader.readBool();
+    final key = reader.readInt();
 
     // Return the deserialized object
     return Quote(
@@ -31,6 +41,9 @@ class QuoteAdapter extends TypeAdapter<Quote> {
       authorSlug: authorSlug,
       tags: tags,
       length: length,
+      id: id,
+      isFavorite: isFavorite,
+      key: key,
     );
   }
 
@@ -44,5 +57,8 @@ class QuoteAdapter extends TypeAdapter<Quote> {
     writer.writeString(obj.authorSlug);
     writer.writeList(obj.tags);
     writer.writeInt(obj.length);
+    writer.writeString(obj.id);
+    writer.writeBool(obj.isFavorite);
+    writer.writeInt(obj.key);
   }
 }

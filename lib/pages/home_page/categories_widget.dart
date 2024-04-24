@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_quote_master/widgets/tile.dart';
+import 'package:flutter_quote_master/core/widgets/tile.dart';
 
 class CategoriesWidget extends StatelessWidget {
   const CategoriesWidget({
