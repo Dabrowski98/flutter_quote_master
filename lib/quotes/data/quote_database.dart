@@ -3,11 +3,11 @@ import 'package:flutter_quote_master/quotes/services/quote_service.dart';
 import 'package:hive_flutter/adapters.dart';
 
 class QuoteDatabase {
-  final String boxName = "mybox";
+  final String boxName = "quotesBox";
   static int dayPassed = DateTime.now().difference(DateTime(1970)).inDays;
 
   initData() async {
-    var box = await Hive.openBox<Quote>(boxName);
+    var box = Hive.box<Quote>(boxName);
     var data = await QuoteService().fetchQuotes();
     int pages = data["totalPages"];
     int totalCount = data["totalCount"];
@@ -26,7 +26,7 @@ class QuoteDatabase {
   }
 
   Quote getDailyQuote() {
-    var box = Hive.box<Quote>("mybox");
+    var box = Hive.box<Quote>("quotesBox");
     int dailyQuoteIndex = dayPassed % box.length;
     return box.getAt(dailyQuoteIndex) ??
         Quote(

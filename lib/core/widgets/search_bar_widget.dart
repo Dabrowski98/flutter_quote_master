@@ -1,25 +1,40 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_quote_master/quotes/models/quote.dart';
 import 'package:hive/hive.dart';
 
 class SearchBarWidget extends StatefulWidget {
   final Function(bool, List<Quote>) onSearchStateChanged;
-  const SearchBarWidget({super.key, required this.onSearchStateChanged});
+  final List<Quote> baseQuotesList;
+
+  const SearchBarWidget(
+      {super.key,
+      required this.baseQuotesList,
+      required this.onSearchStateChanged});
   @override
   State<SearchBarWidget> createState() => _SearchBarWidgetState();
 }
 
-class _SearchBarWidgetState extends State<SearchBarWidget> {
-  late Box<Quote> box;
-  bool isSearching = false;
-  List<Quote> filteredQuotes = [];
-  final TextEditingController _searchController = TextEditingController();
+class _SearchBarWidgetState extends State<SearchBarWidget>
+    with SingleTickerProviderStateMixin {
+  late Box<Quote> _quotesBox;
+  bool isSearchBarNotEmpty = false;
+  List<Quote> _filteredQuotesList = [];
+  late TextEditingController _searchController;
+  late AnimationController _animationController;
+  int toggle = 0;
 
   @override
   void initState() {
+    _quotesBox = Hive.box<Quote>("quotesBox");
+    _filteredQuotesList = widget.baseQuotesList;
+    _searchController = TextEditingController();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 400),
+    );
     super.initState();
-    box = Hive.box<Quote>("mybox");
-    filteredQuotes = box.values.toList();
   }
 
   @override
@@ -42,9 +57,9 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                       onPressed: () {
                         _searchController.clear();
                         setState(() {
-                        isSearching = false;
+                          isSearchBarNotEmpty = false;
                           widget.onSearchStateChanged(
-                              isSearching, filteredQuotes);
+                              isSearchBarNotEmpty, _filteredQuotesList);
                         });
                       },
                     )
@@ -62,10 +77,11 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
             onChanged: (input) {
               searchData(input);
               setState(() {
-                isSearching =
+                isSearchBarNotEmpty =
                     (_searchController.text.length > 1) ? true : false;
               });
-              widget.onSearchStateChanged(isSearching, filteredQuotes);
+              widget.onSearchStateChanged(
+                  isSearchBarNotEmpty, _filteredQuotesList);
             },
           ),
         ),
@@ -75,18 +91,18 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
 
   void searchData(String input) {
     String query = input.toLowerCase();
-    if (query.length > 1) {
-      setState(
-        () {
-          filteredQuotes = box.values
-              .where((quote) =>
-                  quote.content.toLowerCase().contains(query) ||
-                  quote.author.toLowerCase().contains(query) ||
-                  quote.tags.any((tag) => tag.toLowerCase().contains(query)))
-              .toList();
-        },
-      );
-      widget.onSearchStateChanged(isSearching, filteredQuotes);
-    }
+    // if (query.length > 1) {
+    setState(
+      () {
+        _filteredQuotesList = widget.baseQuotesList
+            .where((quote) =>
+                quote.content.toLowerCase().contains(query) ||
+                quote.author.toLowerCase().contains(query) ||
+                quote.tags.any((tag) => tag.toLowerCase().contains(query)))
+            .toList();
+      },
+    );
+    widget.onSearchStateChanged(isSearchBarNotEmpty, _filteredQuotesList);
+    // }
   }
 }

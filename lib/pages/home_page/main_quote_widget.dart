@@ -1,6 +1,10 @@
+import 'dart:math';
+
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_quote_master/core/widgets/searchResults.dart';
 import 'package:hive/hive.dart';
 import 'package:share/share.dart';
 
@@ -12,58 +16,63 @@ import 'package:flutter_animate/flutter_animate.dart';
 class MainQuoteWidget extends StatefulWidget {
   const MainQuoteWidget({
     super.key,
-    required this.isSearching,
-    this.searchResults,
+    required this.isSearchBarNotEmpty,
+    required this.searchResultsList,
+    required this.addToFavorites,
   });
 
-  final bool isSearching;
-  final List<Quote>? searchResults;
+  final bool isSearchBarNotEmpty;
+  final List<Quote> searchResultsList;
+  final Function addToFavorites;
 
   @override
   State<MainQuoteWidget> createState() => _MainQuoteWidgetState();
 }
 
 class _MainQuoteWidgetState extends State<MainQuoteWidget> {
-  late Quote _quoteOfTheDay;
-  late Box<Quote> _box;
+  late Box<Quote> _quotesBox;
+
   late List<Quote> _quotes;
-  late CarouselController _buttonCarouselController;
-  late DisplayMode _displayMode;
-  late Quote _pickedQuote;
+  late Quote _quoteOfTheDay;
   late int _pickedQuoteIndex;
+
+  late CarouselController _buttonCarouselController;
+  late CarouselController _buttonCarouselController2;
+
+  late DisplayMode _displayMode;
   late bool _isFirstOfSearchedQuotes = false;
   final Map<int, bool> _quotePrintingFinishedMap = {};
-  late UniqueKey _key;
+  bool _shouldShowSearchResults = false;
 
   @override
   void initState() {
+    super.initState();
     _displayMode = DisplayMode.quoteOfTheDay;
     _quoteOfTheDay = QuoteDatabase().getDailyQuote();
-    _box = Hive.box<Quote>("mybox");
-    _quotes = _box.values.toList();
+    _quotesBox = Hive.box<Quote>("quotesBox");
+    _quotes = _quotesBox.values.toList();
     _quotes.shuffle();
     _buttonCarouselController = CarouselController();
-    _key = UniqueKey();
-    super.initState();
+    _buttonCarouselController2 = CarouselController();
+    _pickedQuoteIndex = -1;
   }
 
   @override
   void didUpdateWidget(MainQuoteWidget oldWidget) {
-    if (widget.isSearching) {
+    if (!widget.isSearchBarNotEmpty &&
+        widget.isSearchBarNotEmpty != oldWidget.isSearchBarNotEmpty) {
       setState(() {
-        _displayMode = DisplayMode.searchResults;
+        _displayMode = DisplayMode.quoteOfTheDay;
+        _isFirstOfSearchedQuotes = false;
       });
     } else {
       setState(() {
-        _quotePrintingFinishedMap.clear();
-        _displayMode = DisplayMode.quoteOfTheDay;
+        _shouldShowSearchResults = true;
+        _pastelColors.shuffle();
+        _displayMode = DisplayMode.searchResults;
       });
     }
-    if (widget.isSearching != oldWidget.isSearching) {
-      setState(() {
-        _key = UniqueKey();
-      });
-    }
+
     super.didUpdateWidget(oldWidget);
   }
 
@@ -72,98 +81,116 @@ class _MainQuoteWidgetState extends State<MainQuoteWidget> {
     super.dispose();
   }
 
+  onTapSearchResult(int newPickedQuoteIndex, bool newShouldShowSearchResults,
+      DisplayMode newDisplayMode) {
+    setState(() {
+      _pickedQuoteIndex = newPickedQuoteIndex;
+      _shouldShowSearchResults = newShouldShowSearchResults;
+      _displayMode = newDisplayMode;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    
     return Expanded(
-        key: _key,
-        child: switch (_displayMode) {
-      DisplayMode.quoteOfTheDay => CarouselSlider.builder(
-          carouselController: _buttonCarouselController,
-          itemCount: _quotes.length + 1,
-          options: CarouselOptions(
-              enlargeCenterPage: true,
-              height: 9999,
-              enableInfiniteScroll: false,
-              viewportFraction: 1),
-          itemBuilder: (context, index, realIndex) {
-            setIndexTo0() {
-              if (_buttonCarouselController.ready) {
-                _buttonCarouselController.animateToPage(0);
-              }
-            }
+      child: Stack(
+        children: [
+          Visibility(
+            visible: !widget.isSearchBarNotEmpty,
+            maintainState: true,
+            child: CarouselSlider.builder(
+              carouselController: _buttonCarouselController,
+              itemCount: _quotes.length + 1,
+              options: CarouselOptions(
+                  enlargeCenterPage: true,
+                  height: 9999,
+                  enableInfiniteScroll: false,
+                  viewportFraction: 1),
+              itemBuilder: (context, index, realIndex) {
+                setIndexTo0() {
+                  if (_buttonCarouselController.ready) {
+                    _buttonCarouselController.animateToPage(0);
+                  }
+                }
 
-            if (index == 0) {
-              return Tile(
-                color: const Color.fromARGB(255, 73, 73, 73),
-                child: showQuote(_quoteOfTheDay, QuoteType.quoteOfTheDay),
-              );
-            } else {
-              Color color = Color.alphaBlend(
-                Color.fromARGB(
-                  255,
-                  index.hashCode % 128,
-                  index.hashCode % 64 * 2,
-                  index.hashCode % 32 * 4,
-                ).withOpacity(0.5),
-                Colors.white,
-              );
+                if (index == 0) {
+                  return Tile(
+                    color: const Color.fromARGB(255, 73, 73, 73),
+                    child: showQuote(_quoteOfTheDay, QuoteType.quoteOfTheDay),
+                  );
+                } else {
+                  return Tile(
+                    color: Color.alphaBlend(
+                      _pastelColors[index % _pastelColors.length]
+                          .withOpacity(0.7),
+                      Colors.black,
+                    ),
+                    child: showQuote(
+                      _quotes[index],
+                      QuoteType.regularQuote,
+                      setIndexTo0: setIndexTo0,
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+          if (_shouldShowSearchResults)
+            widget.isSearchBarNotEmpty
+                ? SearchResults(widget.searchResultsList, onTapSearchResult: (
+                    pickedQuoteIndex,
+                    shouldShowSearchResults,
+                    displayMode,
+                  ) {
+                    onTapSearchResult(
+                      pickedQuoteIndex,
+                      shouldShowSearchResults,
+                      displayMode,
+                    );
+                  })
+                : SizedBox.shrink(),
+          if (widget.isSearchBarNotEmpty &&
+              _displayMode == DisplayMode.selectedQuote)
+            CarouselSlider.builder(
+              carouselController: _buttonCarouselController2,
+              itemCount: widget.searchResultsList.length,
+              options: CarouselOptions(
+                  enlargeCenterPage: true,
+                  height: 9999,
+                  enableInfiniteScroll: false,
+                  viewportFraction: 1),
+              itemBuilder: (context, index, realIndex) {
+                if (index == 0) {
+                  _isFirstOfSearchedQuotes = true;
+                } else {
+                  _isFirstOfSearchedQuotes = false;
+                }
 
-              return Tile(
-                color: color,
-                child: showQuote(
-                  _quotes[index],
-                  QuoteType.regularQuote,
-                  setIndexTo0: setIndexTo0,
-                ),
-              );
-            }
-          },
-        ),
-      DisplayMode.searchedQuotes => CarouselSlider.builder(
-          carouselController: _buttonCarouselController,
-          itemCount: widget.searchResults!.length,
-          options: CarouselOptions(
-              enlargeCenterPage: true,
-              height: 9999,
-              enableInfiniteScroll: false,
-              viewportFraction: 1),
-          itemBuilder: (context, index, realIndex) {
-            if (index == 0) {
-              _isFirstOfSearchedQuotes = true;
-            } else {
-              _isFirstOfSearchedQuotes = false;
-            }
+                setIndexTo0() {
+                  if (_buttonCarouselController2.ready) {
+                    _buttonCarouselController2.animateToPage(0);
+                  }
+                }
 
-            setIndexTo0() {
-              if (_buttonCarouselController.ready) {
-                _buttonCarouselController.animateToPage(0);
-              }
-            }
-
-            Color color = Color.alphaBlend(
-              Color.fromARGB(
-                255,
-                index.hashCode % 128,
-                index.hashCode % 64 * 2,
-                index.hashCode % 32 * 4,
-              ).withOpacity(0.5),
-              Colors.white,
-            );
-
-            return Tile(
-              color: color,
-              child: showQuote(
-                widget.searchResults![
-                    index + _pickedQuoteIndex % widget.searchResults!.length],
-                QuoteType.regularQuote,
-                setIndexTo0: setIndexTo0,
-              ),
-            );
-          },
-        ),
-      DisplayMode.searchResults => showSearchResults()
-    });
+                return Tile(
+                  color: Color.alphaBlend(
+                    _pastelColors[
+                            index % _pastelColors.length + _pickedQuoteIndex]
+                        .withOpacity(0.7),
+                    Colors.black,
+                  ),
+                  child: showQuote(
+                    widget.searchResultsList[index +
+                        _pickedQuoteIndex % widget.searchResultsList.length],
+                    QuoteType.regularQuote,
+                    setIndexTo0: setIndexTo0,
+                  ),
+                );
+              },
+            )
+        ],
+      ),
+    );
   }
 
   showQuote(Quote? quote, QuoteType quoteType, {void Function()? setIndexTo0}) {
@@ -203,6 +230,7 @@ class _MainQuoteWidgetState extends State<MainQuoteWidget> {
                     onPressed: _isFirstOfSearchedQuotes
                         ? () {
                             setState(() {
+                              _shouldShowSearchResults = true;
                               _displayMode = DisplayMode.searchResults;
                             });
                           }
@@ -319,7 +347,9 @@ class _MainQuoteWidgetState extends State<MainQuoteWidget> {
                       ),
                     ),
                     onPressed: () {
-                      addToFavorite(quote);
+                      setState(() {
+                        widget.addToFavorites(quote);
+                      });
                     },
                     child: Icon(
                       quote.isFavorite ? Icons.favorite : Icons.favorite_border,
@@ -364,13 +394,6 @@ class _MainQuoteWidgetState extends State<MainQuoteWidget> {
     );
   }
 
-  void addToFavorite(Quote quote) {
-    return setState(() {
-      quote.isFavorite = !quote.isFavorite;
-      _box.put(quote.key, quote);
-    });
-  }
-
   void shareQuote(Quote quote) {
     Share.share("Check out this inspiring quote from QuoteMaster App!\n\n"
         "\"${quote.content}\" \n\n"
@@ -391,63 +414,6 @@ class _MainQuoteWidgetState extends State<MainQuoteWidget> {
 //       ],
 //     );
 //   }
-
-  showSearchResults() {
-    if (widget.isSearching) {
-      return widget.searchResults!.isNotEmpty
-          ? Tile(
-              color: const Color.fromARGB(255, 73, 73, 73),
-              child: ListView.builder(
-                  itemCount: widget.searchResults!.length,
-                  itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _pickedQuote = _quotes.firstWhere((element) =>
-                              element.id == widget.searchResults?[index].id);
-                          _pickedQuoteIndex = index;
-                          _displayMode = DisplayMode.searchedQuotes;
-                        });
-                      },
-                      child: Tile(
-                        color: const Color.fromARGB(255, 85, 85, 85),
-                        child: Column(
-                          children: [
-                            Text(
-                              widget.searchResults![index].content,
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 20),
-                            ),
-                            Text(
-                              widget.searchResults![index].author,
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
-            )
-          : Tile(
-              color: const Color.fromARGB(255, 73, 73, 73),
-              child: Center(
-                child: AnimatedTextKit(
-                  isRepeatingAnimation: false,
-                  pause: Duration.zero,
-                  animatedTexts: [
-                    TypewriterAnimatedText(
-                      "No matching results found.",
-                      textStyle: const TextStyle(
-                          height: 1.6, color: Colors.white, fontSize: 20),
-                    ),
-                  ],
-                ),
-              ),
-            );
-    } else {
-      return const SizedBox.shrink();
-    }
-  }
 }
 
 enum QuoteType {
@@ -455,4 +421,18 @@ enum QuoteType {
   regularQuote;
 }
 
-enum DisplayMode { quoteOfTheDay, searchedQuotes, searchResults }
+enum DisplayMode { quoteOfTheDay, selectedQuote, searchResults }
+
+List<Color> _pastelColors = [
+  Color.fromARGB(255, 215, 150, 150),
+  Color.fromARGB(255, 215, 181, 150),
+  Color.fromARGB(255, 204, 215, 150),
+  Color.fromARGB(255, 150, 215, 152),
+  Color.fromARGB(255, 150, 215, 203),
+  Color.fromARGB(255, 150, 215, 215),
+  Color.fromARGB(255, 150, 174, 215),
+  Color.fromARGB(255, 163, 150, 215),
+  Color.fromARGB(255, 180, 150, 215),
+  Color.fromARGB(255, 215, 150, 201),
+  Color.fromARGB(255, 227, 166, 188),
+];

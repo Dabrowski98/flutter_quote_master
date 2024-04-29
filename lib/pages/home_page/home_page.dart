@@ -5,25 +5,37 @@ import 'package:flutter_quote_master/quotes/models/quote.dart';
 import 'package:flutter_quote_master/pages/home_page/categories_widget.dart';
 import 'package:flutter_quote_master/pages/home_page/main_quote_widget.dart';
 import 'package:flutter_quote_master/pages/home_page/rate_widget.dart';
-import 'package:flutter_quote_master/pages/home_page/search_bar_widget.dart';
+import 'package:flutter_quote_master/core/widgets/search_bar_widget.dart';
+import 'package:hive/hive.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, required this.addToFavorites});
+
+  final Function addToFavorites;
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  bool isSearching = false;
-  List<Quote> searchResults = [];
+  bool isSearchBarNotEmpty = false;
+  List<Quote> searchResultsList = [];
+  late Box<Quote> _quotesBox;
+  late List<Quote> _quotes;
+
+  @override
+  void initState() {
+    _quotesBox = Hive.box<Quote>("quotesBox");
+    _quotes = _quotesBox.values.toList();
+    super.initState();
+  }
 
   void updateSearchState(bool value, List<Quote> results) {
     setState(
       () {
-        isSearching = value;
+        isSearchBarNotEmpty = value;
         if (value) {
-          searchResults = results;
+          searchResultsList = results;
         }
       },
     );
@@ -37,10 +49,14 @@ class _HomePageState extends State<HomePage> {
       margin: const EdgeInsets.all(4.0),
       child: Column(
         children: [
-          SearchBarWidget(onSearchStateChanged: updateSearchState),
+          SearchBarWidget(
+            onSearchStateChanged: updateSearchState,
+            baseQuotesList: _quotes,
+          ),
           MainQuoteWidget(
-            isSearching: isSearching,
-            searchResults: searchResults,
+            isSearchBarNotEmpty: isSearchBarNotEmpty,
+            searchResultsList: searchResultsList,
+            addToFavorites: widget.addToFavorites,
           ),
           Row(
             children: [

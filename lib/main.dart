@@ -9,25 +9,10 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(QuoteAdapter());
   // ignore: unused_local_variable
-  Box box = await Hive.openBox<Quote>('mybox');
+  Box _quotesBox = await Hive.openBox<Quote>('quotesBox');
   if (await InternetCheck().connected) await QuoteDatabase().initData();
   runApp(const MyApp());
 }
-
-// var myTheme = ThemeData(
-//   colorScheme: ColorScheme(
-//       brightness: brightness,
-//       primary: primary,
-//       onPrimary: onPrimary,
-//       secondary: secondary,
-//       onSecondary: onSecondary,
-//       error: error,
-//       onError: onError,
-//       background: background,
-//       onBackground: onBackground,
-//       surface: surface,
-//       onSurface: onSurface),
-// );
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -38,6 +23,18 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final ThemeMode _themeMode = ThemeMode.light;
+  late Box _quotesBox;
+
+  void addToFavorites(Quote quote) {
+    quote.isFavorite = !quote.isFavorite;
+    _quotesBox.put(quote.key, quote);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _quotesBox = Hive.box<Quote>("quotesBox");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +53,7 @@ class _MyAppState extends State<MyApp> {
       title: "QuoteMaster",
       themeMode: _themeMode,
       darkTheme: ThemeData.dark(),
-      home: const AppScaffold(),
+      home: AppScaffold(addToFavorites),
     );
   }
 }
