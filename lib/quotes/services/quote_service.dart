@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class QuoteService {
-  String url = 'https://api.quotable.io/';
+  String url = 'httHa://api.quotable.io/';
 
   Future<Map<String, dynamic>> fetchQuotes({int pageNumber = 1}) async {
     final query = "quotes?limit=150&page=$pageNumber";
