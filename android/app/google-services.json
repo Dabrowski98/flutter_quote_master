@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "332259428605",
+    "project_id": "quotemasterpushnoti",
+    "storage_bucket": "quotemasterpushnoti.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:332259428605:android:f3eb6db82aff33d076d694",
+        "android_client_info": {
+          "package_name": "com.example.flutter_quote_master"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQD-i609VgzDAI2kKHyFIaklvN6HEZ1AM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

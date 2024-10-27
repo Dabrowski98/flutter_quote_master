@@ -2,7 +2,7 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_quote_master/core/widgets/searchResults.dart';
+import 'package:flutter_quote_master/core/widgets/search_results_widget.dart';
 import 'package:flutter_quote_master/core/widgets/tile.dart';
 import 'package:flutter_quote_master/pages/home_page/main_quote_widget.dart';
 import 'package:flutter_quote_master/quotes/models/quote.dart';
@@ -30,7 +30,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
   bool _shouldShowSearchResults = false;
   bool isSearchBarNotEmpty = false;
   List<Quote> searchResultsList = [];
-
+  int _textAnimationsFinished = 0;
   void updateSearchState(bool value, List<Quote> results) {
     setState(
       () {
@@ -79,6 +79,19 @@ class _FavoritesPageState extends State<FavoritesPage> {
   Widget build(BuildContext context) {
     double size = MediaQuery.of(context).size.width;
 
+    const emptyPageTextStyle = TextStyle(
+      height: 1.6,
+      color: Color.fromARGB(255, 72, 72, 72),
+      fontSize: 24,
+    );
+
+    const emptyPageTextStyleBig = TextStyle(
+      height: 3,
+      color: Color.fromARGB(255, 72, 72, 72),
+      fontSize: 32,
+      fontWeight: FontWeight.w500,
+    );
+
     return Container(
       margin: const EdgeInsets.all(4.0),
       child: Column(
@@ -87,39 +100,110 @@ class _FavoritesPageState extends State<FavoritesPage> {
           SearchBarWidget(
             onSearchStateChanged: updateSearchState,
             baseQuotesList: _favoriteQuotesList,
+            titleOfThePage: "Your Favorite Quotes!",
           ),
-
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              "Your \nfavorite \nQuotes!",
-              maxLines: 3,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-          ),
-
           Expanded(
-            child: SearchResults(
-              searchResultsList,
-              onTapSearchResult: (
-                pickedQuoteIndex,
-                shouldShowSearchResults,
-                displayMode,
-              ) {
-                onTapSearchResult(
-                  pickedQuoteIndex,
-                  shouldShowSearchResults,
-                  displayMode,
-                );
-              },
-            ),
-          ),
-          //   Row(
-          //     children: [
-          //       RateWidget(size: size),
-          //       CategoriesWidget(size: size),
-          //     ],
-          //   ),
+            child: searchResultsList.isNotEmpty
+                ? SearchResults(
+                    searchResultsList,
+                    onTapSearchResult: (
+                      pickedQuoteIndex,
+                      shouldShowSearchResults,
+                      displayMode,
+                    ) {
+                      onTapSearchResult(
+                        pickedQuoteIndex,
+                        shouldShowSearchResults,
+                        displayMode,
+                      );
+                    },
+                  )
+                : Tile(
+                    borderColor: Colors.transparent,
+                    color: Color.fromARGB(255, 207, 207, 207),
+                    padding: 8,
+                    child: LayoutBuilder(builder: (context, constraints) {
+                      return Column(children: [
+                        SizedBox(
+                          height: constraints.maxHeight / 5,
+                        ),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Row(
+                            children: [
+                              AnimatedTextKit(
+                                isRepeatingAnimation: false,
+                                pause: Duration(milliseconds: 200),
+                                onFinished: () {
+                                  setState(() {
+                                    _textAnimationsFinished++;
+                                  });
+                                },
+                                animatedTexts: [
+                                  TypewriterAnimatedText(
+                                    "Empty list?",
+                                    speed: Durations.short1,
+                                    textStyle: emptyPageTextStyleBig,
+                                  ),
+                                ],
+                              ),
+                              if (_textAnimationsFinished > 0)
+                                AnimatedTextKit(
+                                  isRepeatingAnimation: false,
+                                  pause: Duration(milliseconds: 200),
+                                  onFinished: () {
+                                    setState(() {
+                                      _textAnimationsFinished++;
+                                    });
+                                  },
+                                  animatedTexts: [
+                                    TypewriterAnimatedText(
+                                      "No worries!",
+                                      speed: Durations.short1,
+                                      textStyle: emptyPageTextStyleBig,
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          ),
+                        ),
+                        if (_textAnimationsFinished > 1)
+                          AnimatedTextKit(
+                            isRepeatingAnimation: false,
+                            pause: Duration(milliseconds: 200),
+                            onFinished: () {
+                              setState(() {
+                                _textAnimationsFinished++;
+                              });
+                            },
+                            animatedTexts: [
+                              TypewriterAnimatedText(
+                                "Your favorite quotes are just a click away. Explore, discover, and fill this space with the words that inspire you.",
+                                textStyle: emptyPageTextStyle,
+                              ),
+                            ],
+                          ),
+                        if (_textAnimationsFinished > 2)
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: AnimatedTextKit(
+                              isRepeatingAnimation: false,
+                              pause: Duration(milliseconds: 200),
+                              onFinished: () {
+                                _textAnimationsFinished++;
+                              },
+                              animatedTexts: [
+                                TypewriterAnimatedText(
+                                  "Start browsing now!",
+                                  textStyle: emptyPageTextStyleBig,
+                                ),
+                              ],
+                            ),
+                          ),
+                      ]);
+                    }),
+                  ),
+          )
         ],
       ),
     );

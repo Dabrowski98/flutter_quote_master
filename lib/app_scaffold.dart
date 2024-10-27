@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quote_master/pages/favorites_page/favorites_page.dart';
 import 'package:flutter_quote_master/pages/home_page/home_page.dart';
 import 'package:flutter_quote_master/pages/notifications_page/notifications_page.dart';
-import 'package:flutter_quote_master/pages/settings_page/settings_page.dart';
 import 'package:flutter_quote_master/quotes/models/quote.dart';
 
 class AppScaffold extends StatefulWidget {
@@ -34,23 +33,12 @@ class _AppScaffoldState extends State<AppScaffold> {
           icon: Icon(Icons.notifications_none),
           activeIcon: Icon(Icons.notifications))
     ];
-    
+
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 100,
         centerTitle: true,
-        actions: [
-          IconButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return const SettingsPage();
-                }));
-              },
-              icon: const Icon(
-                Icons.settings,
-                color: Colors.white,
-              ))
-        ],
+        actions: [],
         title: RichText(
           text: const TextSpan(
             text: "Quote",

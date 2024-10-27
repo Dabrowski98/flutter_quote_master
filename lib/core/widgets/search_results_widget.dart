@@ -90,27 +90,19 @@ class _SearchResultsState extends State<SearchResults> {
                               Padding(
                                 padding: const EdgeInsets.fromLTRB(
                                     8.0, 12.0, 0.0, 0.0),
-                                child: SizedBox(
-                                  width: 9999,
-                                  child: Column(
-                                      mainAxisSize: MainAxisSize.max,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        SizedBox(
-                                          width: 9999,
-                                          child: Text(
-                                            maxLines: 1,
-                                            widget.searchResults[index].content
-                                                .padRight(40, " ")
-                                                .substring(0, 40),
-                                            style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 20),
-                                          ),
-                                        ),
-                                      ]),
-                                ),
+                                child: Column(
+                                    mainAxisSize: MainAxisSize.max,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        maxLines: 1,
+                                        widget.searchResults[index].content
+                                            .padRight(40, " ")
+                                            .substring(0, 40),
+                                        style: const TextStyle(
+                                            color: Colors.white, fontSize: 20),
+                                      ),
+                                    ]),
                               ),
                               Positioned(
                                 right: 0,
@@ -174,7 +166,7 @@ class _SearchResultsState extends State<SearchResults> {
                             end: Alignment.bottomCenter,
                             stops: [0.1, 1.0],
                             colors: [
-                              const Color(0xffe6e6e6),
+                              Color.fromRGBO(230, 230, 230, 1),
                               Color.fromARGB(255, 90, 90, 90).withOpacity(0.0),
                             ],
                           ),

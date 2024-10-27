@@ -52,6 +52,7 @@ class _HomePageState extends State<HomePage> {
           SearchBarWidget(
             onSearchStateChanged: updateSearchState,
             baseQuotesList: _quotes,
+            titleOfThePage: "Home Page",
           ),
           MainQuoteWidget(
             isSearchBarNotEmpty: isSearchBarNotEmpty,

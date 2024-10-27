@@ -9,7 +9,7 @@ class Tile extends StatelessWidget {
 
   const Tile(
       {this.child,
-      this.color,
+      this.color = const Color.fromARGB(255, 220, 220, 220),
       this.borderColor = Colors.black,
       super.key,
       this.margin = 4.0,

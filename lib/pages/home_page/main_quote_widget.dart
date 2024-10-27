@@ -4,7 +4,7 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_quote_master/core/widgets/searchResults.dart';
+import 'package:flutter_quote_master/core/widgets/search_results_widget.dart';
 import 'package:hive/hive.dart';
 import 'package:share/share.dart';
 
@@ -175,7 +175,7 @@ class _MainQuoteWidgetState extends State<MainQuoteWidget> {
                 return Tile(
                   color: Color.alphaBlend(
                     _pastelColors[
-                            index % _pastelColors.length + _pickedQuoteIndex]
+                            index % (_pastelColors.length + _pickedQuoteIndex)]
                         .withOpacity(0.7),
                     Colors.black,
                   ),
@@ -277,47 +277,52 @@ class _MainQuoteWidgetState extends State<MainQuoteWidget> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.only(right: 24.0),
-                            child: AnimatedTextKit(
-                              isRepeatingAnimation: false,
-                              displayFullTextOnTap: true,
-                              onTap: () => setState(
-                                () {
-                                  _quotePrintingFinishedMap[quote.key] = true;
-                                },
-                              ),
-                              onFinished: () => setState(
-                                () {
-                                  _quotePrintingFinishedMap[quote.key] = true;
-                                },
-                              ),
-                              pause: Duration.zero,
-                              animatedTexts: [
-                                TypewriterAnimatedText(
-                                  "\"${quote.content}\"",
-                                  textAlign: TextAlign.left,
-                                  textStyle: const TextStyle(
-                                      height: 1.6,
-                                      color: Colors.white,
-                                      fontSize: 24),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 24.0),
+                              child: AnimatedTextKit(
+                                isRepeatingAnimation: false,
+                                displayFullTextOnTap: true,
+                                onTap: () => setState(
+                                  () {
+                                    _quotePrintingFinishedMap[quote.key] = true;
+                                  },
                                 ),
-                              ],
+                                onFinished: () => setState(
+                                  () {
+                                    _quotePrintingFinishedMap[quote.key] = true;
+                                  },
+                                ),
+                                pause: Duration.zero,
+                                animatedTexts: [
+                                  TypewriterAnimatedText(
+                                    "    \"${quote.content}\"",
+                                    textAlign: TextAlign.left,
+                                    textStyle: const TextStyle(
+                                        height: 1.6,
+                                        color: Colors.white,
+                                        fontSize: 24),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                           if (_quotePrintingFinishedMap[quote.key] == true)
-                            SizedBox(
-                              width: 9999,
-                              child: AnimatedTextKit(
-                                isRepeatingAnimation: false,
-                                animatedTexts: [
-                                  TypewriterAnimatedText("~ ${quote.author}",
-                                      textAlign: TextAlign.end,
-                                      textStyle: const TextStyle(
-                                          color: Colors.white,
-                                          fontStyle: FontStyle.italic,
-                                          fontSize: 16)),
-                                ],
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: SizedBox(
+                                child: AnimatedTextKit(
+                                  isRepeatingAnimation: false,
+                                  animatedTexts: [
+                                    TypewriterAnimatedText("~ ${quote.author}",
+                                        textAlign: TextAlign.end,
+                                        textStyle: const TextStyle(
+                                            color: Colors.white,
+                                            fontStyle: FontStyle.italic,
+                                            fontSize: 16)),
+                                  ],
+                                ),
                               ),
                             )
                         ],

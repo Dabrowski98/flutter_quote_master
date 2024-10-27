@@ -49,6 +49,10 @@ dependencies:
     flutter_animate: ^4.5.0
     simple_animations: ^5.0.2
     flutter_lints: ^3.0.2
+    url_launcher: ^6.3.0
+    firebase_core: ^3.2.0
+    firebase_messaging: ^15.0.3
+    flutter_dotenv: ^5.2.1
 
     # #State management
     # flutter_bloc: ^8.1.5
@@ -87,6 +91,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+    assets:
+        - .env
     # The following line ensures that the Material Icons font is
     # included with your application, so that you can use the icons in
     # the material Icons class.
